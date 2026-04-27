@@ -34,8 +34,8 @@ export default function AdminHistoryPage() {
         apps:app_id(name, reward_amount)
       `)
       .order("created_at", { ascending: false })
-      .then(({ data }) => {
-        setHistory((data as unknown as ProofHistory[]) || []);
+      .then(({ data }: { data: ProofHistory[] | null }) => {
+        setHistory(data || []);
         setLoading(false);
       });
 
