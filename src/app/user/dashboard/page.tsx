@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getUserProfile } from "@/lib/actions";
+import { getUserProfile, userLogout } from "@/lib/actions";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
@@ -43,9 +43,9 @@ export default function UserDashboard() {
           .eq("status", "approved");
 
         // Merge and Format
-        const combined: any[] = [
-          ...(txs || []).map(t => ({ ...t, source: 'transaction' })),
-          ...(approvedProofs || []).map(p => ({
+        const combined: Record<string, unknown>[] = [
+          ...(txs || []).map((t: Record<string, unknown>) => ({ ...t, source: 'transaction' })),
+          ...(approvedProofs || []).map((p: Record<string, unknown> & { apps?: { name?: string } }) => ({
             id: `p-${p.id}`,
             amount: p.awarded_amount,
             type: 'credit',
@@ -56,7 +56,7 @@ export default function UserDashboard() {
         ];
 
         // Sort by date (descending)
-        combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        combined.sort((a, b) => new Date(b.created_at as string).getTime() - new Date(a.created_at as string).getTime());
         
         setTransactions(combined.slice(0, 20));
       } catch (err) {

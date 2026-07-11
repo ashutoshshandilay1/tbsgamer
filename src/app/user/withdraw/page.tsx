@@ -55,7 +55,7 @@ export default function WithdrawPage() {
     } else {
       setSuccess(true);
       // update local balance
-      setProfile(prev => ({ ...prev, wallet_balance: prev.wallet_balance - selectedOption.amount }));
+      setProfile((prev: Record<string, unknown>) => ({ ...prev, wallet_balance: (prev.wallet_balance as number) - selectedOption.amount }));
     }
     setSubmitting(false);
   };

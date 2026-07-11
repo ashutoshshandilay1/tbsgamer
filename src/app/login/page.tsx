@@ -12,7 +12,7 @@ export default function AdminLogin() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setError("");
-    const result = await loginAction(password);
+    const result = await loginAction("ashucodedev@gmail.com", password);
     if (result?.error) { setError(result.error); setLoading(false); }
   };
 

@@ -44,7 +44,7 @@ export default function AdminUsersPage() {
       .from("profiles")
       .select("*")
       .order("created_at", { ascending: false })
-      .then(({ data }) => {
+      .then(({ data }: { data: Profile[] | null; error: unknown }) => {
         setUsers(data || []);
         setLoading(false);
       });
@@ -52,7 +52,7 @@ export default function AdminUsersPage() {
     // Real-time subscription — updates instantly on any change
     const channel = supabase
       .channel("profiles-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, (payload) => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, (payload: { eventType: string; new: Record<string, unknown>; old: Record<string, unknown> }) => {
         if (payload.eventType === "INSERT") {
           setUsers((prev) => [payload.new as Profile, ...prev]);
         } else if (payload.eventType === "UPDATE") {
