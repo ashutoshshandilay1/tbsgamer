@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Star, ChevronRight, Smartphone, Copy, Check } from "lucide-react";
+import { Star, ChevronRight, Smartphone, Copy, Check, Lock } from "lucide-react";
+import Link from "next/link";
 import { submitProof } from "@/lib/actions";
 
 type App = {
@@ -254,13 +255,52 @@ function Sheet({ app, onClose }: { app: App; onClose: () => void }) {
   );
 }
 
-export default function AppCard({ app, submitted = false }: { app: App; submitted?: boolean }) {
+function LoginPrompt({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="modal-bg" onClick={onClose}>
+      <div className="modal-sheet" onClick={e => e.stopPropagation()} style={{ textAlign: "center" }}>
+        <div className="modal-drag" />
+        <div style={{ width: 72, height: 72, background: "linear-gradient(135deg, #10b981 0%, #059669 100%)", borderRadius: 24, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", boxShadow: "0 10px 25px -5px rgba(16,185,129,0.4)" }}>
+          <Lock size={32} />
+        </div>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>Login Required</h2>
+        <p style={{ color: "#64748b", fontSize: 14, marginBottom: 28, lineHeight: 1.6 }}>
+          Login or create a free account to claim this task and start earning!
+        </p>
+        <Link
+          href="/user/login"
+          className="btn-big btn-green-big"
+          style={{ width: "100%", textDecoration: "none", display: "flex", justifyContent: "center", marginBottom: 12 }}
+        >
+          Login to Claim
+        </Link>
+        <Link
+          href="/user/signup"
+          className="btn-big"
+          style={{ width: "100%", textDecoration: "none", display: "flex", justifyContent: "center", background: "#f1f5f9", color: "#0f172a" }}
+        >
+          Create Free Account
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+export default function AppCard({ app, submitted = false, isLoggedIn = true }: { app: App; submitted?: boolean; isLoggedIn?: boolean }) {
   const [show, setShow] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+
+  const handleClick = () => {
+    if (submitted) return;
+    if (!isLoggedIn) { setShowLogin(true); return; }
+    setShow(true);
+  };
+
   return (
     <>
-      <div 
-        className="app-featured-card" 
-        onClick={() => { if (!submitted) setShow(true) }}
+      <div
+        className="app-featured-card"
+        onClick={handleClick}
         style={{ opacity: submitted ? 0.7 : 1, filter: submitted ? "grayscale(50%)" : "none" }}
       >
         <div className="app-card-header">
@@ -277,19 +317,21 @@ export default function AppCard({ app, submitted = false }: { app: App; submitte
             <span className="reward-lbl">Reward</span>
             <span className="reward-val">₹{app.reward_amount}</span>
           </div>
-          <button 
+          <button
             className="app-card-action"
-            style={{ 
-              background: submitted ? "#f1f5f9" : undefined, 
-              color: submitted ? "#64748b" : undefined,
-              boxShadow: submitted ? "none" : undefined
+            style={{
+              background: submitted ? "#f1f5f9" : !isLoggedIn ? "#f1f5f9" : undefined,
+              color: submitted ? "#64748b" : !isLoggedIn ? "#64748b" : undefined,
+              boxShadow: submitted ? "none" : !isLoggedIn ? "none" : undefined,
+              display: "flex", alignItems: "center", gap: 6
             }}
           >
-            {submitted ? "In Review" : "Claim Now"}
+            {submitted ? "In Review" : !isLoggedIn ? <><Lock size={14} /> Login</> : "Claim Now"}
           </button>
         </div>
       </div>
       {show && <Sheet app={app} onClose={() => setShow(false)} />}
+      {showLogin && <LoginPrompt onClose={() => setShowLogin(false)} />}
     </>
   );
 }

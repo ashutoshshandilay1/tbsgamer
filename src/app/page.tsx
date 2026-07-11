@@ -3,9 +3,8 @@ import { cookies } from "next/headers";
 import AppCard from "@/components/AppCard";
 import BottomNav from "@/components/BottomNav";
 import Header from "@/components/Header";
-import { redirect } from "next/navigation";
 import { getUserProfile } from "@/lib/actions";
-import { Star, Camera, MessageCircle, Wallet, Layers, Sparkles, User } from "lucide-react";
+import { Star, Camera, MessageCircle, Wallet, Layers, Sparkles } from "lucide-react";
 
 export const revalidate = 60;
 
@@ -19,19 +18,21 @@ export default async function HomePage() {
     .eq("active", true)
     .order("created_at", { ascending: false });
 
+  // Guest-friendly: don't redirect, just check if logged in
   const user = await getUserProfile();
-  if (!user) {
-    redirect("/user/login");
-  }
 
   let submittedAppIds = new Set<number>();
-  const { data: proofs } = await supabase.from("proofs").select("app_id").eq("user_id", user.id);
-  if (proofs) submittedAppIds = new Set(proofs.map(p => p.app_id));
+  if (user) {
+    const { data: proofs } = await supabase.from("proofs").select("app_id").eq("user_id", user.id);
+    if (proofs) submittedAppIds = new Set(proofs.map(p => p.app_id));
+  }
 
   const count = apps?.length || 0;
   const maxEarn = count * 100;
 
-  const availableApps = apps?.filter(app => !submittedAppIds.has(app.id)) || [];
+  const availableApps = user
+    ? (apps?.filter(app => !submittedAppIds.has(app.id)) || [])
+    : (apps || []);
 
   return (
     <div style={{ background: "#f8fafc", minHeight: "100vh", paddingBottom: 100 }}>
@@ -45,7 +46,7 @@ export default async function HomePage() {
           </div>
           
           <h1>Earn Upto <span className="text-highlight">₹5-100</span><br/>Per Rating</h1>
-          <p>Rate apps on Google Play & get paid instantly via UPI</p>
+          <p>Rate apps on Google Play &amp; get paid instantly via UPI</p>
           
           <div className="hero-banner-stats">
             <div className="hero-stat-pill">
@@ -120,7 +121,9 @@ export default async function HomePage() {
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {availableApps.map((app) => <AppCard key={app.id} app={app} />)}
+              {availableApps.map((app) => (
+                <AppCard key={app.id} app={app} isLoggedIn={!!user} />
+              ))}
             </div>
           )}
         </div>
